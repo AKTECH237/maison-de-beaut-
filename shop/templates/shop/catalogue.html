@@ -1,0 +1,44 @@
+{% extends "shop/base.html" %}{% load humanize %}
+{% block title %}{% if hero %}Accueil{% else %}{{ title }}{% endif %} | {{ shop.name }}{% endblock %}
+{% block content %}
+{% if hero %}
+  <h1>Prenez soin de votre peau et de vos cheveux</h1>
+  <p class="lead">Commandez en ligne, faites-vous livrer ou retirez gratuitement en boutique.</p>
+  <div class="spaces">
+    <a class="space soins" href="{% url 'catalogue' 'soins' %}"><h2>Cosmétiques &amp; Soins</h2><p>Laits, savons, sérums, parfums</p></a>
+    <a class="space capillaire" href="{% url 'catalogue' 'capillaire' %}"><h2>Mèches, Greffes &amp; Capillaire</h2><p>Bundles, lace, perruques, entretien</p></a>
+  </div>
+  <h2>Nos coups de cœur</h2>
+{% else %}
+  <nav class="crumb" aria-label="Fil d'Ariane"><a href="{% url 'home' %}">Accueil</a> / {{ title }}</nav>
+  <h1>{{ title }}</h1>
+  <form class="filters" method="get" aria-label="Filtrer les produits">
+    {% for f in filters %}
+      <label>{{ f.label }}
+        <select name="{{ f.name }}" onchange="this.form.submit()">
+          <option value="">Tous</option>
+          {% for val, lab in f.choices %}<option value="{{ val }}" {% if val == f.value %}selected{% endif %}>{{ lab }}</option>{% endfor %}
+        </select>
+      </label>
+    {% endfor %}
+    <noscript><button class="btn">Filtrer</button></noscript>
+    {% if filtered %}<a href="{% url 'catalogue' space %}">Réinitialiser les filtres</a>{% endif %}
+  </form>
+  <p class="muted">{{ products|length }} produit{{ products|length|pluralize }}</p>
+{% endif %}
+<div class="grid">
+  {% for p in products %}
+  <a class="card" href="{% url 'product' p.slug %}">
+    <div class="ph {{ p.category.space }}" aria-hidden="true">{{ p.name|first }}</div>
+    <div class="info">
+      <h3>{{ p.name }}</h3>
+      <p class="muted">{{ p.category.name }}</p>
+      <p class="price">À partir de {{ p.from_price|intcomma }} FCFA</p>
+      {% if not p.in_stock %}<p class="tag err">Épuisé</p>{% elif p.badge %}<p class="tag ok">{{ p.badge }}</p>{% endif %}
+    </div>
+  </a>
+  {% empty %}
+  <p>Aucun produit ne correspond à ces filtres. <a href="{% url 'catalogue' space|default:'soins' %}">Réinitialiser les filtres</a></p>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "shop/base.html" %}{% load humanize %}
+{% block title %}Commande | {{ shop.name }}{% endblock %}
+{% block content %}
+<h1>Finaliser la commande</h1>
+{% if form.errors %}<p class="msg error" role="alert">Certains champs sont à corriger : ils sont signalés en rouge.</p>{% endif %}
+<div class="checkout">
+<form id="co" method="post" novalidate>{% csrf_token %}
+  <fieldset><legend>Vos coordonnées</legend>
+    {% for f in form.visible_fields|slice:":3" %}
+      <div class="field {% if f.errors %}bad{% endif %}">{{ f.label_tag }}{{ f }}{% for e in f.errors %}<small class="err">{{ e }}</small>{% endfor %}</div>
+    {% endfor %}
+  </fieldset>
+  <fieldset><legend>Mode de réception</legend>
+    {% for r in form.delivery_mode %}<label class="opt">{{ r.tag }} <span>{{ r.choice_label }}</span></label>{% endfor %}
+    <div id="homebox">
+      <div class="field">{{ form.zone.label_tag }}{{ form.zone }}</div>
+      <div class="field {% if form.address.errors %}bad{% endif %}">{{ form.address.label_tag }}{{ form.address }}{% for e in form.address.errors %}<small class="err">{{ e }}</small>{% endfor %}</div>
+      <label class="opt">{{ form.express }} <span>Livraison express (+ {{ express_extra|intcomma }} FCFA)</span></label>
+    </div>
+    <p id="pickupbox" class="muted">Retrait gratuit : {{ shop.address }} ({{ shop.hours }}). Vous serez prévenu par SMS ou e-mail dès que la commande est prête.</p>
+  </fieldset>
+  <fieldset><legend>Paiement</legend>
+    {% for r in form.payment %}<label class="opt">{{ r.tag }} <span>{{ r.choice_label }}</span></label>{% endfor %}
+  </fieldset>
+  <button class="btn">Confirmer la commande</button>
+</form>
+<aside class="recap"><h2>Récapitulatif</h2>
+  <ul>{% for l in lines %}<li>{{ l.qty }} × {{ l.v }}<br><span class="muted">{{ l.sub|intcomma }} FCFA</span></li>{% endfor %}</ul>
+  <p>Sous-total : {{ total|intcomma }} FCFA</p><p>Livraison : <span id="fee"></span></p>
+  <p class="total">Total : <strong id="tot"></strong></p>
+</aside>
+</div>
+{{ fees|json_script:"fees" }}
+<script>
+const F=JSON.parse(document.getElementById("fees").textContent),X={{ express_extra }},S={{ total }},f=document.getElementById("co");
+function upd(){const home=f.delivery_mode.value==="home";
+ document.getElementById("homebox").hidden=!home;document.getElementById("pickupbox").hidden=home;
+ const fee=home?F[f.zone.value]+(f.express.checked?X:0):0;
+ document.getElementById("fee").textContent=fee?fee.toLocaleString("fr-FR")+" FCFA":"Gratuit";
+ document.getElementById("tot").textContent=(S+fee).toLocaleString("fr-FR")+" FCFA";}
+f.addEventListener("change",upd);upd();
+</script>
+{% endblock %}

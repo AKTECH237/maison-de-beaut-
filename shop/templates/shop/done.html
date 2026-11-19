@@ -1,0 +1,14 @@
+{% extends "shop/base.html" %}{% load humanize %}
+{% block title %}Commande enregistrée | {{ shop.name }}{% endblock %}
+{% block content %}
+<h1>Merci {{ o.customer_name }}, votre commande n° {{ o.pk }} est enregistrée</h1>
+{% if o.delivery_mode == "pickup" %}
+<p>Nous vous préviendrons par SMS ou e-mail dès qu'elle est prête. Retrait gratuit à : {{ shop.address }} ({{ shop.hours }}).</p>
+{% else %}
+<p>Nous vous appellerons au {{ o.phone }} pour confirmer la livraison à : {{ o.address }}.</p>
+{% endif %}
+<ul>{% for i in o.items.all %}<li>{{ i.qty }} × {{ i.name }} : {{ i.subtotal|intcomma }} FCFA</li>{% endfor %}</ul>
+<p>Livraison : {% if o.delivery_fee %}{{ o.delivery_fee|intcomma }} FCFA{% else %}gratuite{% endif %}</p>
+<p class="total">Total : <strong>{{ o.total|intcomma }} FCFA</strong> ({{ o.get_payment_display }})</p>
+<p><a class="btn" href="{% url 'home' %}">Retour à l'accueil</a></p>
+{% endblock %}

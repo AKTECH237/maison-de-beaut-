@@ -1,0 +1,36 @@
+{% extends "shop/base.html" %}{% load humanize %}
+{% block title %}{{ p.name }} | {{ shop.name }}{% endblock %}
+{% block content %}
+<nav class="crumb" aria-label="Fil d'Ariane"><a href="{% url 'home' %}">Accueil</a> / <a href="{% url 'catalogue' p.category.space %}">{{ p.category.get_space_display }}</a> / {{ p.name }}</nav>
+<div class="detail">
+  <div class="ph big {{ p.category.space }}" aria-hidden="true">{{ p.name|first }}</div>
+  <div>
+    <h1>{{ p.name }}</h1>
+    {% if p.badge %}<p class="tag ok">{{ p.badge }}</p>{% endif %}
+    {% if p.brand %}<p class="muted">Marque : {{ p.brand }}</p>{% endif %}
+    <p>{{ p.description }}</p>
+    <form method="post" action="{% url 'cart_set' %}">{% csrf_token %}
+      <input type="hidden" name="mode" value="add"><input type="hidden" name="next" value="{{ request.path }}">
+      <fieldset class="variants"><legend>Choisissez une option</legend>
+        {% for v in variants %}
+        <label class="opt {% if v.stock == 0 %}off{% endif %}">
+          <input type="radio" name="variant" value="{{ v.id }}" required {% if v.stock == 0 %}disabled{% endif %} {% if v == default %}checked{% endif %}>
+          <span>{{ v.label }}</span><strong>{{ v.price|intcomma }} FCFA</strong>
+          {% if v.stock == 0 %}<em class="err">Épuisé</em>{% elif v.low %}<em class="warn">Plus que {{ v.stock }}</em>{% else %}<em class="ok">En stock</em>{% endif %}
+        </label>
+        {% endfor %}
+      </fieldset>
+      <label>Quantité <input type="number" name="qty" value="1" min="1" max="10"></label>
+      <button class="btn" {% if not default %}disabled{% endif %}>Ajouter au panier</button>
+    </form>
+    <p><a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/{{ shop.whatsapp }}?text=Bonjour%2C%20pouvez-vous%20m%27envoyer%20des%20photos%20ou%20une%20vid%C3%A9o%20de%20{{ p.name|urlencode }}%20%3F">Demander des photos ou une vidéo sur WhatsApp</a></p>
+    <dl class="specs">
+      {% if p.skin_type %}<dt>Type de peau</dt><dd>{{ p.get_skin_type_display }}</dd>{% endif %}
+      {% if p.effect %}<dt>Effet recherché</dt><dd>{{ p.get_effect_display }}</dd>{% endif %}
+      {% if p.hair_origin %}<dt>Type de cheveux</dt><dd>{{ p.get_hair_origin_display }}</dd>{% endif %}
+      {% if p.texture %}<dt>Texture</dt><dd>{{ p.get_texture_display }}</dd>{% endif %}
+      {% if p.color %}<dt>Couleur</dt><dd>{{ p.color }}</dd>{% endif %}
+    </dl>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "shop/base.html" %}{% load humanize %}
+{% block title %}Panier | {{ shop.name }}{% endblock %}
+{% block content %}
+<h1>Votre panier</h1>
+{% if lines %}
+<div class="scroll"><table>
+  <thead><tr><th>Produit</th><th>Prix</th><th>Quantité</th><th>Sous-total</th></tr></thead>
+  <tbody>{% for l in lines %}
+  <tr>
+    <td><a href="{% url 'product' l.v.product.slug %}">{{ l.v }}</a></td>
+    <td>{{ l.v.price|intcomma }} FCFA</td>
+    <td><form class="inline" method="post" action="{% url 'cart_set' %}">{% csrf_token %}
+      <input type="hidden" name="variant" value="{{ l.v.id }}">
+      <input type="number" name="qty" value="{{ l.qty }}" min="1" max="{{ l.v.stock }}" aria-label="Quantité pour {{ l.v }}">
+      <button class="btn ghost">Mettre à jour</button>
+      <button class="link" name="qty" value="0" formnovalidate>Retirer</button></form></td>
+    <td>{{ l.sub|intcomma }} FCFA</td>
+  </tr>{% endfor %}</tbody>
+</table></div>
+<p class="total">Sous-total : <strong>{{ total|intcomma }} FCFA</strong> <span class="muted">(frais de livraison calculés à l'étape suivante)</span></p>
+<p><a class="btn" href="{% url 'checkout' %}">Passer la commande</a> <a href="{% url 'home' %}">Continuer mes achats</a></p>
+{% else %}
+<p>Votre panier est vide. Découvrez nos <a href="{% url 'catalogue' 'soins' %}">soins</a> ou nos <a href="{% url 'catalogue' 'capillaire' %}">mèches et greffes</a>.</p>
+{% endif %}
+{% endblock %}

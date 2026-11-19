@@ -1,0 +1,27 @@
+{% load static %}<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ shop.name }}{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'shop/style.css' %}">
+</head><body>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="top">
+  <a class="brand" href="{% url 'home' %}">{{ shop.name }}</a>
+  <nav aria-label="Navigation principale">
+    <a href="{% url 'catalogue' 'soins' %}">Cosmétiques &amp; Soins</a>
+    <a href="{% url 'catalogue' 'capillaire' %}">Mèches &amp; Greffes</a>
+  </nav>
+  <a class="cart" href="{% url 'cart' %}">Panier <b>{{ cart_count }}</b></a>
+</header>
+{% if messages %}<div class="msgs" role="status">{% for m in messages %}<p class="msg {{ m.tags }}">{{ m }}</p>{% endfor %}</div>{% endif %}
+<main id="main">{% block content %}{% endblock %}</main>
+<footer>
+  <div class="wrap foot">
+    <div><h2>Notre boutique</h2><p>{{ shop.address }}<br>{{ shop.hours }}</p></div>
+    <div><h2>Nos engagements</h2><p>Cheveux humains authentiques, produits cosmétiques approuvés, retrait gratuit en boutique.</p></div>
+  </div>
+</footer>
+<a class="wa" href="https://wa.me/{{ shop.whatsapp }}" target="_blank" rel="noopener">Écrire sur WhatsApp</a>
+</body></html>

@@ -1,7 +1,8 @@
+import os
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = "dev-key-a-changer-en-production"
-DEBUG = True
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-key-a-changer-en-production")
+DEBUG = os.environ.get("DEBUG", "1") == "1"
 ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
@@ -48,3 +49,6 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "account"
 LOGOUT_REDIRECT_URL = "home"
+
+# Images produits en ligne (clé gratuite sur https://www.pexels.com/api/ ; facultative)
+PEXELS_API_KEY = os.environ.get("PEXELS_API_KEY", "")

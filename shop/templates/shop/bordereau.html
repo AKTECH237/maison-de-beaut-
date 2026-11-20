@@ -1,0 +1,15 @@
+{% extends "shop/base.html" %}{% load humanize %}
+{% block title %}Bordereau n° {{ o.pk }} | {{ shop.name }}{% endblock %}
+{% block content %}
+<h1>Bordereau de livraison n° {{ o.pk }}</h1>
+<p class="muted">{{ shop.name }}, {{ shop.address }}. Commande du {{ o.created_at|date:"d/m/Y H:i" }}.</p>
+<p><strong>{{ o.customer_name }}</strong><br>{{ o.phone }}<br>{{ o.get_delivery_mode_display }}{% if o.address %} : {{ o.address }} ({{ o.get_zone_display }}){% endif %}{% if o.express %}<br><strong>Livraison express</strong>{% endif %}</p>
+<p>Livreur : {{ o.driver|default:"à attribuer" }}</p>
+<div class="scroll"><table>
+  <thead><tr><th>Article</th><th>Qté</th><th>Prix</th><th>Sous-total</th></tr></thead>
+  <tbody>{% for i in o.items.all %}<tr><td>{{ i.name }}</td><td>{{ i.qty }}</td><td>{{ i.price|intcomma }} FCFA</td><td>{{ i.subtotal|intcomma }} FCFA</td></tr>{% endfor %}</tbody>
+</table></div>
+<p>Livraison : {{ o.delivery_fee|intcomma }} FCFA</p>
+<p class="total">Total : <strong>{{ o.total|intcomma }} FCFA</strong> ({{ o.get_payment_display }})</p>
+<p class="noprint"><button class="btn" onclick="window.print()">Imprimer</button> <a href="{% url 'dashboard' %}">Retour à la gestion</a></p>
+{% endblock %}

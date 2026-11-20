@@ -76,3 +76,14 @@ footer{background:var(--teal-2);color:#D5E6E3}footer h2{color:#fff;font-size:1.1
 .order{border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin:12px 0}
 .order summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}.order .amount{margin-left:auto;font-weight:700}
 @media(max-width:600px){.bar{gap:10px}.acct{order:3;width:100%;justify-content:space-between}.cart{margin-left:auto}.order .amount{margin-left:0}}
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:20px 0}
+.stats p{margin:0;padding:14px;background:var(--mist);border-radius:var(--r);color:var(--muted)}.stats strong{display:block;font-size:1.8rem;color:var(--ink)}
+.alertrow{padding:10px 14px;border:1px solid var(--line);border-radius:12px;margin:8px 0}
+.ordercard{display:grid;gap:12px;border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin:12px 0}
+.ordercard .inline select,.ordercard .inline input{flex:1 1 160px}
+@media(min-width:1000px){.ordercard{grid-template-columns:1fr auto;align-items:center}}
+.cols{display:grid;gap:24px}@media(min-width:900px){.cols{grid-template-columns:3fr 2fr}}
+.posrow{display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0}
+.posrow input[type=number]{width:80px}
+@media print{.promo,.top,footer,.wa,.noprint,.msgs{display:none!important}}
+.ph{position:relative;overflow:hidden}.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}

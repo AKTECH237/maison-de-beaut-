@@ -36,6 +36,7 @@ class Product(models.Model):
     texture = models.CharField("Texture", max_length=20, blank=True, choices=[
         ("lisse", "Lisse (Straight)"), ("body-wave", "Ondulé (Body Wave)"), ("curly", "Bouclé (Curly)")])
     color = models.CharField("Couleur", max_length=30, blank=True, help_text="Ex. : 1B, 613, Ombré")
+    image_url = models.URLField("image (URL)", blank=True, help_text="Laissez vide : une image est alors choisie en ligne")
     featured = models.BooleanField("mis en avant", default=False)
     active = models.BooleanField("visible sur le site", default=True)
 
@@ -48,6 +49,13 @@ class Product(models.Model):
     @property
     def from_price(self):
         return min((v.price for v in self.variants.all()), default=0)
+
+    @property
+    def image_src(self):
+        if self.image_url:
+            return self.image_url
+        kw = "skincare,cosmetics" if self.category.space == "soins" else "hair,wig"
+        return f"https://loremflickr.com/640/480/{kw}?lock={self.pk}"
 
     @property
     def in_stock(self):
@@ -96,6 +104,7 @@ class Order(models.Model):
     delivery_fee = models.PositiveIntegerField("frais de livraison", default=0)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
                              related_name="orders", verbose_name="compte client")
+    channel = models.CharField("canal", max_length=5, choices=[("web", "Site web"), ("shop", "Boutique")], default="web")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

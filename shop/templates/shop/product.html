@@ -3,7 +3,7 @@
 {% block content %}
 <nav class="crumb" aria-label="Fil d'Ariane"><a href="{% url 'home' %}">Accueil</a> / <a href="{% url 'catalogue' p.category.space %}">{{ p.category.get_space_display }}</a> / {{ p.name }}</nav>
 <div class="detail">
-  <div class="ph big {{ p.category.space }}" aria-hidden="true">{{ p.name|first }}</div>
+  <div class="ph big {{ p.category.space }}" aria-hidden="true">{{ p.name|first }}<img src="{{ p.image_src }}" alt="" loading="lazy" onerror="this.remove()"></div>
   <div>
     <h1>{{ p.name }}</h1>
     {% if p.badge %}<p class="tag ok">{{ p.badge }}</p>{% endif %}

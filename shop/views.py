@@ -1,13 +1,16 @@
+from functools import wraps
+from urllib.parse import urlencode
+
 from django import forms
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LoginView, LogoutView, redirect_to_login
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import F, Q
+from django.db.models import Count, F, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -195,7 +198,7 @@ class SignupForm(forms.Form):
 class LoginForm(AuthenticationForm):
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
-        self.fields["username"].label = "Adresse e-mail"
+        self.fields["username"].label = "Adresse e-mail ou identifiant"
         self.fields["username"].widget.attrs.update({"autocomplete": "email"})
 
 
@@ -223,3 +226,95 @@ def signup(request):
 def account(request):
     orders = Order.objects.filter(user=request.user).prefetch_related("items")
     return render(request, "shop/account.html", {"orders": orders, "profile": getattr(request.user, "profile", None)})
+
+
+def staff_required(view):
+    """Réservé au personnel : visiteur -> connexion ; client connecté -> accueil (évite la boucle de redirection)."""
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path(), "login")
+        if not request.user.is_staff:
+            messages.error(request, "Cette page est réservée au personnel de la boutique.")
+            return redirect("home")
+        return view(request, *args, **kwargs)
+    return wrapper
+
+
+def _commit(o, lines):
+    """Enregistre une commande et décrémente le stock unique (site et boutique)."""
+    with transaction.atomic():
+        o.save()
+        for v, qty in lines:
+            if not Variant.objects.filter(pk=v.pk, stock__gte=qty).update(stock=F("stock") - qty):
+                raise OutOfStock(str(v))
+            OrderItem.objects.create(order=o, variant=v, name=str(v), price=v.price, qty=qty)
+
+
+def _pos_lines(sale):
+    lines, total = [], 0
+    for v in Variant.objects.filter(id__in=list(sale)).select_related("product"):
+        qty = min(sale[str(v.id)], v.stock)
+        if qty > 0:
+            lines.append({"v": v, "qty": qty, "sub": v.price * qty})
+            total += v.price * qty
+    return lines, total
+
+
+@staff_required
+def pos(request):
+    sale = request.session.get("pos", {})
+    if request.method == "POST":
+        act = request.POST.get("action")
+        if act == "add":
+            v = get_object_or_404(Variant, pk=request.POST.get("variant"))
+            raw = request.POST.get("qty", "1")
+            n = int(raw) if raw.isdigit() and int(raw) > 0 else 1
+            sale[str(v.id)] = min(sale.get(str(v.id), 0) + n, v.stock)
+        elif act == "remove":
+            sale.pop(request.POST.get("variant", ""), None)
+        elif act == "pay":
+            lines, _ = _pos_lines(sale)
+            if not lines:
+                messages.info(request, "La vente est vide : ajoutez d'abord un produit.")
+            else:
+                o = Order(customer_name=request.POST.get("name", "").strip() or "Client boutique", phone="-",
+                          delivery_mode="pickup", payment="cod", status="paid", channel="shop")
+                try:
+                    _commit(o, [(l["v"], l["qty"]) for l in lines])
+                    sale = {}
+                    messages.success(request, f"Vente n° {o.pk} encaissée : {o.total} FCFA. Le stock du site est à jour.")
+                except OutOfStock as e:
+                    messages.error(request, f"Stock insuffisant pour « {e.args[0]} ».")
+        request.session["pos"] = sale
+        return redirect(f"{request.path}?{urlencode({'q': request.POST.get('q', '')})}")
+    q = request.GET.get("q", "").strip()
+    results = []
+    if q:
+        results = Variant.objects.filter(Q(product__name__icontains=q) | Q(label__icontains=q) | Q(product__brand__icontains=q)).select_related("product")[:15]
+    lines, total = _pos_lines(sale)
+    return render(request, "shop/pos.html", {"q": q, "results": results, "lines": lines, "total": total})
+
+
+@staff_required
+def dashboard(request):
+    if request.method == "POST":
+        o = get_object_or_404(Order, pk=request.POST.get("order"))
+        st = request.POST.get("status")
+        if st in dict(Order.STATUS):
+            o.status, o.driver = st, request.POST.get("driver", "").strip()[:80]
+            o.save(update_fields=["status", "driver"])
+            messages.success(request, f"Commande n° {o.pk} mise à jour : {o.get_status_display()}.")
+        return redirect("dashboard")
+    counts = dict(Order.objects.values_list("status").annotate(n=Count("id")))
+    return render(request, "shop/dashboard.html", {
+        "stats": [(label, counts.get(key, 0)) for key, label in Order.STATUS],
+        "low": Variant.objects.filter(stock__lte=F("alert_threshold")).select_related("product").order_by("stock"),
+        "orders": Order.objects.exclude(status="paid").prefetch_related("items")[:40],
+        "statuses": Order.STATUS})
+
+
+@staff_required
+def bordereau(request, pk):
+    o = get_object_or_404(Order.objects.prefetch_related("items"), pk=pk)
+    return render(request, "shop/bordereau.html", {"o": o})

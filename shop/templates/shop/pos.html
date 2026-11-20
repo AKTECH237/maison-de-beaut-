@@ -1,0 +1,35 @@
+{% extends "shop/base.html" %}{% load humanize %}
+{% block title %}Caisse | {{ shop.name }}{% endblock %}
+{% block content %}
+<h1>Caisse boutique</h1>
+<div class="cols">
+  <section>
+    <h2>Chercher un produit</h2>
+    <form method="get" class="search"><input type="search" name="q" value="{{ q }}" placeholder="Nom, marque ou déclinaison" aria-label="Rechercher un produit" autofocus><button class="btn">Chercher</button></form>
+    {% for v in results %}
+    <form method="post" class="posrow">{% csrf_token %}
+      <input type="hidden" name="action" value="add"><input type="hidden" name="variant" value="{{ v.id }}"><input type="hidden" name="q" value="{{ q }}">
+      <span>{{ v }}<br><span class="muted">{{ v.price|intcomma }} FCFA, stock : {{ v.stock }}</span></span>
+      <input type="number" name="qty" value="1" min="1" max="{{ v.stock }}" aria-label="Quantité">
+      <button class="btn small" {% if not v.stock %}disabled{% endif %}>Ajouter</button>
+    </form>
+    {% empty %}{% if q %}<p>Aucun produit trouvé pour « {{ q }} ».</p>{% else %}<p class="muted">Tapez un nom pour commencer la vente.</p>{% endif %}{% endfor %}
+  </section>
+  <aside class="recap">
+    <h2>Vente en cours</h2>
+    {% for l in lines %}
+    <form method="post" class="posrow">{% csrf_token %}
+      <input type="hidden" name="action" value="remove"><input type="hidden" name="variant" value="{{ l.v.id }}"><input type="hidden" name="q" value="{{ q }}">
+      <span>{{ l.qty }} × {{ l.v }}<br><span class="muted">{{ l.sub|intcomma }} FCFA</span></span>
+      <button class="link">Retirer</button>
+    </form>
+    {% empty %}<p class="muted">Aucun article pour le moment.</p>{% endfor %}
+    <p class="total">Total : <strong>{{ total|intcomma }} FCFA</strong></p>
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="pay"><input type="hidden" name="q" value="{{ q }}">
+      <div class="field"><label>Nom du client (facultatif)<input name="name" autocomplete="off"></label></div>
+      <button class="btn block" {% if not lines %}disabled{% endif %}>Encaisser {{ total|intcomma }} FCFA</button>
+    </form>
+  </aside>
+</div>
+{% endblock %}

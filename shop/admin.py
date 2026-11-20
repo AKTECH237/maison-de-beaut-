@@ -34,7 +34,7 @@ class ItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ("id", "customer_name", "phone", "delivery_mode", "payment", "status", "driver", "total_fcfa", "created_at")
     list_editable = ("status", "driver")
-    list_filter = ("status", "delivery_mode", "payment")
+    list_filter = ("status", "channel", "delivery_mode", "payment")
     search_fields = ("customer_name", "phone")
     inlines = [ItemInline]
 

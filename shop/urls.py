@@ -13,4 +13,7 @@ urlpatterns = [
     path("connexion/", views.login_view, name="login"),
     path("deconnexion/", views.logout_view, name="logout"),
     path("mon-compte/", views.account, name="account"),
+    path("caisse/", views.pos, name="pos"),
+    path("gestion/", views.dashboard, name="dashboard"),
+    path("gestion/commande/<int:pk>/bordereau/", views.bordereau, name="bordereau"),
 ]

@@ -1,0 +1,25 @@
+{% extends "shop/base.html" %}{% load humanize %}
+{% block title %}Gestion | {{ shop.name }}{% endblock %}
+{% block content %}
+<h1>Gestion de la boutique</h1>
+<p><a class="btn" href="{% url 'pos' %}">Ouvrir la caisse</a> <a class="btn ghost" href="/admin/">Back-office complet</a></p>
+<div class="stats">{% for label, n in stats %}<p><strong>{{ n }}</strong>{{ label }}</p>{% endfor %}</div>
+<h2>Stock à réapprovisionner</h2>
+{% for v in low %}
+<p class="alertrow">{{ v }} : <strong class="{% if v.stock == 0 %}err{% else %}warn{% endif %}">{{ v.stock }} en stock</strong> (seuil d'alerte : {{ v.alert_threshold }})</p>
+{% empty %}<p>Tous les stocks sont au-dessus du seuil d'alerte.</p>{% endfor %}
+<h2>Commandes à traiter</h2>
+{% for o in orders %}
+<div class="ordercard">
+  <div><strong>Commande n° {{ o.pk }}</strong> : {{ o.customer_name }}, {{ o.phone }}<br>
+    <span class="muted">{{ o.get_delivery_mode_display }}{% if o.address %}, {{ o.address }}{% endif %}. {{ o.total|intcomma }} FCFA, {{ o.get_payment_display }}</span></div>
+  <form method="post" class="inline">{% csrf_token %}
+    <input type="hidden" name="order" value="{{ o.pk }}">
+    <select name="status" aria-label="Statut de la commande {{ o.pk }}">{% for k, l in statuses %}<option value="{{ k }}" {% if k == o.status %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    <input name="driver" value="{{ o.driver }}" placeholder="Livreur (interne ou Yango)" aria-label="Livreur de la commande {{ o.pk }}">
+    <button class="btn ghost small">Enregistrer</button>
+    <a href="{% url 'bordereau' o.pk %}">Bordereau</a>
+  </form>
+</div>
+{% empty %}<p>Aucune commande en attente.</p>{% endfor %}
+{% endblock %}

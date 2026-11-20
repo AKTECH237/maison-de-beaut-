@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -13,8 +13,12 @@ TITLES = dict(Category.SPACES)
 
 
 def home(request):
-    products = Product.objects.filter(active=True, featured=True).select_related("category").prefetch_related("variants")[:8]
-    return render(request, "shop/catalogue.html", {"hero": True, "products": products})
+    qs = Product.objects.filter(active=True).select_related("category").prefetch_related("variants")
+    q = request.GET.get("q", "").strip()
+    if q:
+        qs = qs.filter(Q(name__icontains=q) | Q(brand__icontains=q) | Q(category__name__icontains=q))
+        return render(request, "shop/catalogue.html", {"q": q, "title": f"Résultats pour « {q} »", "products": qs})
+    return render(request, "shop/catalogue.html", {"hero": True, "products": qs.filter(featured=True)[:8]})
 
 
 def catalogue(request, space):

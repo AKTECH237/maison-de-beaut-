@@ -2,13 +2,26 @@
 {% block title %}{% if hero %}Accueil{% else %}{{ title }}{% endif %} | {{ shop.name }}{% endblock %}
 {% block content %}
 {% if hero %}
-  <h1>Prenez soin de votre peau et de vos cheveux</h1>
-  <p class="lead">Commandez en ligne, faites-vous livrer ou retirez gratuitement en boutique.</p>
+  <section class="hero">
+    <h1>Une peau lumineuse, des cheveux sublimes</h1>
+    <p class="lead">Soins sélectionnés, mèches et greffes authentiques. Commandez en ligne, recevez chez vous ou retirez en boutique.</p>
+    <p><a class="btn" href="{% url 'catalogue' 'soins' %}">Découvrir les soins</a> <a class="btn ghost" href="{% url 'catalogue' 'capillaire' %}">Voir les mèches et greffes</a></p>
+  </section>
+  <div class="trust">
+    <p><strong>Retrait gratuit</strong>Prêt en boutique, vous êtes prévenu par SMS.</p>
+    <p><strong>Livraison à domicile</strong>À Douala, Yaoundé et dans les autres villes.</p>
+    <p><strong>Paiement simple</strong>Espèces, Mobile Money ou carte bancaire.</p>
+    <p><strong>Produits authentiques</strong>Cheveux humains et cosmétiques approuvés.</p>
+  </div>
   <div class="spaces">
-    <a class="space soins" href="{% url 'catalogue' 'soins' %}"><h2>Cosmétiques &amp; Soins</h2><p>Laits, savons, sérums, parfums</p></a>
-    <a class="space capillaire" href="{% url 'catalogue' 'capillaire' %}"><h2>Mèches, Greffes &amp; Capillaire</h2><p>Bundles, lace, perruques, entretien</p></a>
+    <a class="space soins" href="{% url 'catalogue' 'soins' %}"><h2>Cosmétiques &amp; Soins</h2><p>Laits, savons, sérums, parfums</p><span class="go">Voir les produits</span></a>
+    <a class="space capillaire" href="{% url 'catalogue' 'capillaire' %}"><h2>Mèches, Greffes &amp; Capillaire</h2><p>Bundles, lace, perruques, entretien</p><span class="go">Voir les produits</span></a>
   </div>
   <h2>Nos coups de cœur</h2>
+{% elif q %}
+  <nav class="crumb" aria-label="Fil d'Ariane"><a href="{% url 'home' %}">Accueil</a> / Recherche</nav>
+  <h1>{{ title }}</h1>
+  <p class="muted">{{ products|length }} produit{{ products|length|pluralize }}</p>
 {% else %}
   <nav class="crumb" aria-label="Fil d'Ariane"><a href="{% url 'home' %}">Accueil</a> / {{ title }}</nav>
   <h1>{{ title }}</h1>
@@ -38,7 +51,7 @@
     </div>
   </a>
   {% empty %}
-  <p>Aucun produit ne correspond à ces filtres. <a href="{% url 'catalogue' space|default:'soins' %}">Réinitialiser les filtres</a></p>
+  <p>Aucun produit ne correspond. {% if space %}<a href="{% url 'catalogue' space %}">Réinitialiser les filtres</a>{% else %}<a href="{% url 'home' %}">Retour à l'accueil</a>{% endif %}</p>
   {% endfor %}
 </div>
 {% endblock %}

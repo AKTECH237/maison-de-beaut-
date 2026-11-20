@@ -1,0 +1,17 @@
+{% extends "shop/base.html" %}{% load humanize %}
+{% block title %}Mon compte | {{ shop.name }}{% endblock %}
+{% block content %}
+<h1>Bonjour {{ user.first_name|default:user.username }}</h1>
+<p class="muted">{{ user.email }}{% if profile %}<br>{{ profile.phone }}{% endif %}</p>
+<h2>Mes commandes</h2>
+{% for o in orders %}
+<details class="order">
+  <summary><strong>Commande n° {{ o.pk }}</strong> du {{ o.created_at|date:"d/m/Y" }}
+    <span class="tag ok">{{ o.get_status_display }}</span> <span class="amount">{{ o.total|intcomma }} FCFA</span></summary>
+  <ul>{% for i in o.items.all %}<li>{{ i.qty }} × {{ i.name }} : {{ i.subtotal|intcomma }} FCFA</li>{% endfor %}</ul>
+  <p class="muted">{{ o.get_delivery_mode_display }}. Paiement : {{ o.get_payment_display }}.</p>
+</details>
+{% empty %}
+<p>Vous n'avez pas encore de commande. <a href="{% url 'home' %}">Découvrir la boutique</a></p>
+{% endfor %}
+{% endblock %}

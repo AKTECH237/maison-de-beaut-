@@ -1,0 +1,16 @@
+{% extends "shop/base.html" %}
+{% block title %}Se connecter | {{ shop.name }}{% endblock %}
+{% block content %}
+<section class="auth">
+  <h1>Se connecter</h1>
+  {% for e in form.non_field_errors %}<p class="msg error" role="alert">{{ e }}</p>{% endfor %}
+  <form method="post" novalidate>{% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% for f in form %}
+    <div class="field {% if f.errors %}bad{% endif %}">{{ f.label_tag }}{{ f }}{% for e in f.errors %}<small class="err">{{ e }}</small>{% endfor %}</div>
+    {% endfor %}
+    <button class="btn block">Se connecter</button>
+  </form>
+  <p>Pas encore de compte ? <a href="{% url 'signup' %}">Créer un compte</a></p>
+</section>
+{% endblock %}

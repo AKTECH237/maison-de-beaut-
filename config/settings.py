@@ -40,3 +40,11 @@ SHOP = {
     "address": "Rue de la Joie, Akwa, Douala",
     "hours": "Lundi au samedi, 8 h à 19 h",
 }
+
+# Comptes clients
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
+]
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "account"
+LOGOUT_REDIRECT_URL = "home"

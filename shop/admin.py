@@ -41,3 +41,7 @@ class OrderAdmin(admin.ModelAdmin):
     @admin.display(description="Total (FCFA)")
     def total_fcfa(self, obj):
         return obj.total
+
+from .models import Profile  # noqa: E402
+
+admin.site.register(Profile, list_display=("user", "phone"))

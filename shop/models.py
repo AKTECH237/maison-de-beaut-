@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 FEES = {"douala": 1500, "yaounde": 2500, "autre": 4000}  # frais de livraison (FCFA)
@@ -93,6 +94,8 @@ class Order(models.Model):
     driver = models.CharField("livreur", max_length=80, blank=True,
                               help_text="Livreur interne ou service tiers (ex. Yango)")
     delivery_fee = models.PositiveIntegerField("frais de livraison", default=0)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+                             related_name="orders", verbose_name="compte client")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -116,3 +119,11 @@ class OrderItem(models.Model):
     @property
     def subtotal(self):
         return self.price * self.qty
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    phone = models.CharField("téléphone", max_length=30)
+
+    def __str__(self):
+        return f"Profil de {self.user}"
